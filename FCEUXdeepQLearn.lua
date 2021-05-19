@@ -10,7 +10,7 @@ ROMlocation = "" --Which ROM should it play?
 primaryMovieLocation = "" --Which movie should it play before letting the AI play? This is commonly used to get past the title screen, or to start the AI in a particular section.
 secondaryMovieLocation = "" --What movie should it output?
 time = 600 --How long is it allowed to play?
-NetworkLearnRate = 5 * 10^-15 --What is the learning rate of the network?(I advise you to experiment with this number. You can uncomment line 206 to help with this,
+NetworkLearnRate = 0.001 --What is the learning rate of the network?(I advise you to experiment with this number. Try to minimize the cost(It should be displayed on the emulator screen.).
 trainiterationsperstep = 10 --How many training cycles should it do every frame? lower is faster, but it learns more slowly.
 discount = 0.5 --How much should it care about the future? This should be between 0 and 1. If the number is higher, it cares about the future more and more.
 RNG = 0.5 --How much should it try random inputs? The AI has to stumble across a way to get a higher score, and occasionally making it do random things helps with that. This number should also be between - and 1. The higher this number is, the more random the AI's behavior becomes.
@@ -189,22 +189,25 @@ function train(se, inputs, outputs, LearnRate, iterations)
       for x = 1, #s.weights do
         for y = 1, #s.weights[x] do
           avgb[x][y] = avgb[x][y] + c[2][x][y]
+          total = total + c[2][x][y]
           for z = 1, #s.weights[x][y] do
             avgw[x][y][z] = avgw[x][y][z] + c[1][x][y][z] / #inputs
+            total = total + c[1][x][y][z]
           end
         end
       end
     end
+    total = math.abs(total)
+    total = total + 0.001
     for x = 1, #s.weights do
       for y = 1, #s.weights[x] do
-        s.biases[x][y] = s.biases[x][y] - avgb[x][y] * LearnRate * math.sqrt(avgCost)
+        s.biases[x][y] = s.biases[x][y] - avgb[x][y] * LearnRate * math.sqrt(avgCost) / total
         for z = 1, #s.weights[x][y] do
-          s.weights[x][y][z] = s.weights[x][y][z] - avgw[x][y][z] * LearnRate * math.sqrt(avgCost)
+          s.weights[x][y][z] = s.weights[x][y][z] - avgw[x][y][z] * LearnRate * math.sqrt(avgCost) / total
         end
       end
     end
     s.cost = avgCost
-    --print(avgCost) --This is the line to show the cost change every training cycle, this can be used for tuning the learning rate. Make sure it decreases, but at a reasonable pace.
   end
   return s
 end
