@@ -312,7 +312,7 @@ while true do
       q = train(q, {screendata}, {qs}, NetworkLearnRate, trainiterationsperstep)
       break
     end
-    qs[thebestq] = reward * (1 - discount) + futurereward * discount
+    qs[thebestq] = reward + futurereward * discount
     q = train(q, {screendata}, {qs}, NetworkLearnRate, trainiterationsperstep)
     gui.text(5, 10, "Episode: "..count.." Score: "..utility().."\nBest score ever: "..bestiteverdid.."\nCost: "..q.cost.."\nimprovement: "..q.cost - cost(q, screendata, qs).."\nRandomness: "..RNG.."\n"..time - t.." frames until reset")
     RNG = RNG * RNGfalloff
