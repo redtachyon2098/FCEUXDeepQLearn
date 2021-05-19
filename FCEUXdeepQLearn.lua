@@ -15,6 +15,7 @@ trainiterationsperstep = 10 --How many training cycles should it do every frame?
 discount = 0.5 --How much should it care about the future? This should be between 0 and 1. If the number is higher, it cares about the future more and more.
 RNG = 0.5 --How much should it try random inputs? The AI has to stumble across a way to get a higher score, and occasionally making it do random things helps with that. This number should also be between - and 1. The higher this number is, the more random the AI's behavior becomes.
 RNGfalloff = 0.999 --How slowly should the randomness decrease over time? This number should also be between 0 and 1, and the higher it is, the slower the randomness is decreased.
+memoryRate = 0.1 --This value dictates how much it considers the past, and should be between 0 and 1.
 main = savestate.object(5) --Make sure these savestate slots are not used by you! This script will overwrite them.
 buffer = savestate.object(6)
 speed = "turbo"  --What speedmode should the game run on? Choose between "normal", "turbo", and "maximum".
@@ -280,6 +281,7 @@ bestiteverdid = 0
 qs = {}
 inputs = {}
 screendata = {}
+curscreen = {}
 reward = 0
 futurereward = 0
 futureqs = {}
@@ -289,8 +291,12 @@ terminated = false
 while true do
   count = count + 1
   savestate.load(main)
+  screendata = getscreen(screenX, screenY)
   for t = 1, time do
-    screendata = getscreen(screenX, screenY)
+    curscreen = getscreen(screenX, screenY)
+    for x = 1, #screendata do
+      screendata[x] = screendata[x] * memoryRate + curscreen[x] * (1 - memoryRate)
+    end
     q = predict(q, screendata)
     qs = output(q)
     thebestq = biggest(qs) - 1
